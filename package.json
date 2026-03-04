@@ -1,7 +1,7 @@
 {
 	"name": "@roastery/terroir",
 	"description": "Layered exception hierarchy and runtime schema validation for the Roastery CMS ecosystem",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"type": "module",
 	"author": {
 		"name": "Alan Reis",
@@ -16,6 +16,14 @@
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"keywords": [
+		"hoyasumii",
+		"roastery",
+		"@roastery",
+		"terroir",
+		"@roastery/terroir",
+		"roastery-terroir"
+	],
 	"typesVersions": {
 		"*": {
 			"*": [
@@ -39,7 +47,7 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "tsup 'src/**/index.ts' --format cjs,esm --dts --tsconfig tsconfig.build.json --clean",
+		"build": "biome check --fix && tsup 'src/**/index.ts' --format cjs,esm --dts --tsconfig tsconfig.build.json --clean",
 		"test:unit": "bun test --env-file=.env.testing",
 		"test:coverage": "bun test --env-file=.env.testing --coverage",
 		"setup": "bun run build && bun link",
@@ -50,13 +58,13 @@
 		"@commitlint/cli": "^20.4.1",
 		"@commitlint/config-conventional": "^20.4.1",
 		"husky": "^9.1.7",
-		"knip": "^5.85.0",
-		"tsup": "^8.5.1"
+		"knip": "^5.85.0"
 	},
 	"peerDependencies": {
 		"typescript": "^5",
 		"@sinclair/typebox": ">= 0.34.0 < 1",
 		"@types/bun": "latest",
+		"tsup": "^8.5.1",
 		"uuid": "^13.0.0"
 	},
 	"dependencies": {}
