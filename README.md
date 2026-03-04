@@ -189,7 +189,7 @@ Automatically registered when importing `@roastery/terroir/schema`:
 ## Exports reference
 
 ```typescript
-import { t } from '@roastery/terroir';                          // TypeBox namespace (re-export)
+import { t, uuid } from '@roastery/terroir';                    // TypeBox and uuid namespaces (re-exports)
 import { ... } from '@roastery/terroir/exceptions';             // internal exceptions (rare)
 import { ... } from '@roastery/terroir/exceptions/application'; // application layer
 import { ... } from '@roastery/terroir/exceptions/application/jwt'; // JWT exceptions
@@ -201,17 +201,19 @@ import type { ... } from '@roastery/terroir/exceptions/types';  // type utilitie
 import { ... } from '@roastery/terroir/schema';                 // Schema + SchemaManager
 ```
 
-### TypeBox re-export
+### Re-exports
 
-`t` is the full `@sinclair/typebox` namespace re-exported for convenience, so you don't need to import TypeBox separately:
+`t` and `uuid` are re-exported for convenience, so you don't need to import them separately:
 
 ```typescript
-import { t } from '@roastery/terroir';
+import { t, uuid } from '@roastery/terroir';
 
 const UserSchema = t.Object({
   id: t.String({ format: 'uuid' }),
   name: t.String(),
 });
+
+const id = uuid.v7();
 ```
 
 ---
