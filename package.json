@@ -1,7 +1,7 @@
 {
 	"name": "@roastery/terroir",
 	"description": "Layered exception hierarchy and runtime schema validation for the Roastery CMS ecosystem",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"type": "module",
 	"author": {
 		"name": "Alan Reis",
