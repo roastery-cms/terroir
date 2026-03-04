@@ -1,3 +1,4 @@
+biome check
 mise exec -- bun test:unit
 mise exec -- bun test:coverage
 mise exec -- bun knip

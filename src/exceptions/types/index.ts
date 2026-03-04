@@ -6,18 +6,18 @@ import type { CaffeineApplicationExceptions } from "./caffeine-application-excep
 import type { CaffeineInfraExceptions } from "./caffeine-infra-exceptions";
 
 export type CaffeineExceptionKeysByLayer = {
-    internal: keyof typeof InternalErrors;
-    domain: CaffeineDomainExceptions;
-    application: CaffeineApplicationExceptions;
-    infra: CaffeineInfraExceptions;
+	internal: keyof typeof InternalErrors;
+	domain: CaffeineDomainExceptions;
+	application: CaffeineApplicationExceptions;
+	infra: CaffeineInfraExceptions;
 };
 
 export type CaffeineExceptionKeys<T extends CoreExceptionType> =
-    CaffeineExceptionKeysByLayer[T];
+	CaffeineExceptionKeysByLayer[T];
 
 export type CaffeineExceptionRecords<T> = {
-    [Key in keyof CaffeineExceptionKeysByLayer]: Record<
-        CaffeineExceptionKeysByLayer[Key],
-        T
-    >;
+	[Key in keyof CaffeineExceptionKeysByLayer]: Record<
+		CaffeineExceptionKeysByLayer[Key],
+		T
+	>;
 };
