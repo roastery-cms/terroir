@@ -5,19 +5,19 @@ import type { DomainExceptions } from "./domain-exceptions";
 import type { ApplicationExceptions } from "./application-exceptions";
 import type { InfraExceptions } from "./infra-exceptions";
 
-export type CaffeineExceptionKeysByLayer = {
+export type RoasteryExceptionKeysByLayer = {
 	internal: keyof typeof InternalErrors;
 	domain: DomainExceptions;
 	application: ApplicationExceptions;
 	infra: InfraExceptions;
 };
 
-export type CaffeineExceptionKeys<T extends CoreExceptionType> =
-	CaffeineExceptionKeysByLayer[T];
+export type RoasteryExceptionKeys<T extends CoreExceptionType> =
+	RoasteryExceptionKeysByLayer[T];
 
-export type CaffeineExceptionRecords<T> = {
-	[Key in keyof CaffeineExceptionKeysByLayer]: Record<
-		CaffeineExceptionKeysByLayer[Key],
+export type RoasteryExceptionRecords<T> = {
+	[Key in keyof RoasteryExceptionKeysByLayer]: Record<
+		RoasteryExceptionKeysByLayer[Key],
 		T
 	>;
 };

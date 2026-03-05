@@ -124,7 +124,7 @@ import { UnknownException, InvalidEntityData, InvalidObjectValueException } from
 import { ApplicationException, DomainException, InfraException } from '@roastery/terroir/exceptions/models';
 
 // Type utilities for mapping exception constructors by layer
-import type { CaffeineExceptionKeysByLayer, CaffeineExceptionKeys, CaffeineExceptionRecords } from '@roastery/terroir/exceptions/types';
+import type { RoasteryExceptionKeysByLayer, RoasteryExceptionKeys, RoasteryExceptionRecords } from '@roastery/terroir/exceptions/types';
 ```
 
 ---
@@ -233,7 +233,7 @@ bun run build
 # Check for unused exports and dependencies
 bun run knip
 
-# Full setup (knip + build + bun link)
+# Full setup (build + bun link)
 bun run setup
 ```
 
