@@ -51,6 +51,8 @@ function handleError(err: unknown) {
 }
 ```
 
+> **Naming convention**: application and domain exception `name` fields use a bare label (e.g. `"Bad Request"`, `"Invalid Property"`), while infrastructure exception `name` fields use the `*Exception` suffix (e.g. `"Conflict Exception"`, `"Cache Unavailable Exception"`). This is intentional and preserved for log compatibility.
+
 ### Application layer
 
 Errors related to business logic, request handling, and user input.
@@ -114,7 +116,7 @@ throw new DatabaseUnavailableException('PostgresRepository');
 Rarely used directly — reserved for framework-level error handling.
 
 ```typescript
-import { UnknownException, InvalidEntityData, InvalidObjectValueException } from '@roastery/terroir/exceptions';
+import { UnknownException, InvalidEntityDataException, InvalidObjectValueException } from '@roastery/terroir/exceptions';
 ```
 
 ### Base classes and type utilities
@@ -131,11 +133,12 @@ import type { RoasteryExceptionKeysByLayer, RoasteryExceptionKeys, RoasteryExcep
 
 ## Schema Validation
 
+> **Side-effect**: importing `@roastery/terroir/schema` (or anything that transitively imports it, like `Schema`/`SchemaManager`) registers the custom string formats on TypeBox's global `FormatRegistry`. Registration is idempotent and happens exactly once per process.
+
 ```typescript
 import { Schema } from '@roastery/terroir/schema';
 import { Type } from '@sinclair/typebox';
 
-// Importing the schema module also registers all custom formats
 const UserSchema = new Schema(
   Type.Object({
     id: Type.String({ format: 'uuid' }),
@@ -176,13 +179,15 @@ Automatically registered when importing `@roastery/terroir/schema`:
 
 | Format | Description |
 |--------|-------------|
-| `uuid` | UUID v7 |
+| `uuid` | UUID v7 (other versions are rejected) |
 | `email` | Email address (RFC 5322) |
 | `url` | Full URL with valid hostname |
 | `simple-url` | Basic URL (no hostname requirement) |
 | `slug` | URL slug (`kebab-case-only`) |
 | `date-time` | ISO 8601 date-time string |
 | `json` | Valid JSON string |
+
+> The **uuid** format is v7-only by design — consumers can rely on the time-ordered prefix without runtime checks.
 
 ---
 
