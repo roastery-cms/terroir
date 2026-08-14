@@ -29,11 +29,14 @@ export class InvalidEnvironmentException extends InfraException {
 	 *   environment (e.g. `"config-loader"`).
 	 * @param message - Optional explanatory message. Defaults to a static
 	 *   string about missing/invalid env vars.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly source: string,
 		public readonly message: string = "The required environment variables are invalid or missing.",
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

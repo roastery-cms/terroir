@@ -28,11 +28,14 @@ export class ForeignDependencyConstraintException extends InfraException {
 	 *   template).
 	 * @param message - Optional explanatory message. Defaults to a templated
 	 *   string that references {@link source}.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly source: string,
 		public readonly message: string = `It was not possible to remove the ${source} resource due to its usefulness in other domains.`,
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

@@ -34,16 +34,22 @@ export class ResourceNotFoundException extends ApplicationException {
 	/** Human-readable label for the exception class. */
 	public readonly name = "Resource Not Found";
 
+	/** HTTP status this exception maps to. */
+	public readonly code = 404;
+
 	/**
 	 * @param source - Identifier of the domain/use-case where the lookup
 	 *   failed (used in the default message template).
 	 * @param message - Optional explanatory message. Defaults to a templated
 	 *   string that references {@link source}.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly source: string,
 		public readonly message: string = `Resource not found in the ${source} domain.`,
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

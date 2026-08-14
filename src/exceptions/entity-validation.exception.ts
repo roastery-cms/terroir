@@ -1,5 +1,5 @@
 import { CoreException, type CoreExceptionType } from "./core";
-import { ExceptionLayer } from "./symbols";
+import { Layer } from "@/symbols";
 
 /**
  * Internal-layer exception thrown by the framework itself when an entity
@@ -7,7 +7,7 @@ import { ExceptionLayer } from "./symbols";
  *
  * Unlike layer-specific exceptions, this class skips the abstract layer
  * models and extends {@link CoreException} directly, marking itself as
- * `[ExceptionLayer] === "internal"` and pinning `source` to `"$internal"`.
+ * `[Layer] === "internal"` and pinning `source` to `"$internal"`.
  *
  * @remarks
  * Renamed from `InvalidEntityData` to follow the package-wide
@@ -29,7 +29,7 @@ import { ExceptionLayer } from "./symbols";
  */
 export class InvalidEntityDataException extends CoreException {
 	/** Layer discriminator, fixed to `"internal"`. */
-	public override readonly [ExceptionLayer]: CoreExceptionType = "internal";
+	public override readonly [Layer]: CoreExceptionType = "internal";
 
 	/** Human-readable label for the exception class. */
 	public readonly name = "Invalid Entity Data";
@@ -40,10 +40,13 @@ export class InvalidEntityDataException extends CoreException {
 	/**
 	 * @param message - Optional explanatory message. Defaults to a generic
 	 *   description of the entity validation failure.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly message: string = "The entity validation failed.",
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

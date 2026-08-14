@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { Type } from "@sinclair/typebox";
-import { Schema } from "../schema";
+import { SchemaManager } from "../schema-manager";
 import "./index";
 
 describe("Date-Time Format", () => {
-	const schema = new Schema(Type.String({ format: "date-time" }));
+	const schema = Type.String({ format: "date-time" });
 
 	it("should return true for valid date-time strings", () => {
 		const validDateTimes = [
@@ -18,7 +18,7 @@ describe("Date-Time Format", () => {
 		];
 
 		for (const dateTime of validDateTimes) {
-			expect(schema.match(dateTime)).toBe(true);
+			expect(SchemaManager.match(schema, dateTime)).toBe(true);
 		}
 	});
 
@@ -33,7 +33,7 @@ describe("Date-Time Format", () => {
 		];
 
 		for (const dateTime of invalidDateTimes) {
-			expect(schema.match(dateTime)).toBe(false);
+			expect(SchemaManager.match(schema, dateTime)).toBe(false);
 		}
 	});
 });

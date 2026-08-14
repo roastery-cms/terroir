@@ -3,7 +3,7 @@
  * itself rather than by application/domain/infra code.
  *
  * All classes exported here extend {@link CoreException} directly and report
- * `[ExceptionLayer] === "internal"`.
+ * `[Layer] === "internal"`.
  *
  * @module @roastery/terroir/exceptions
  * @see {@link CoreException}

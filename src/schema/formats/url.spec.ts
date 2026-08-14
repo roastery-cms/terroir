@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { FormatRegistry, Type } from "@sinclair/typebox";
-import { Schema } from "../schema";
+import { SchemaManager } from "../schema-manager";
 import "./index";
 
 describe("URL Format", () => {
-	const schema = new Schema(Type.String({ format: "url" }));
+	const schema = Type.String({ format: "url" });
 	const check = FormatRegistry.Get("url") as (value: string) => boolean;
 
 	it("should return true for valid URLs with hostname containing a dot", () => {
@@ -21,7 +21,7 @@ describe("URL Format", () => {
 		];
 
 		for (const url of validUrls) {
-			expect(schema.match(url)).toBe(true);
+			expect(SchemaManager.match(schema, url)).toBe(true);
 			expect(check(url)).toBe(true);
 		}
 	});
@@ -38,7 +38,7 @@ describe("URL Format", () => {
 		];
 
 		for (const url of invalidUrls) {
-			expect(schema.match(url)).toBe(false);
+			expect(SchemaManager.match(schema, url)).toBe(false);
 			expect(check(url)).toBe(false);
 		}
 	});

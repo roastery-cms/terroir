@@ -29,12 +29,15 @@ export class InvalidPropertyException extends DomainException {
 	 *   to.
 	 * @param message - Optional explanatory message. Defaults to a templated
 	 *   string that references both {@link property} and {@link source}.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly property: string,
 		public readonly source: string,
 		public readonly message: string = `The property '${property}' in ${source} is invalid.`,
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

@@ -1,13 +1,13 @@
-import { ExceptionLayer } from "@/exceptions/symbols";
+import { Layer } from "@/symbols";
 import { CoreException, type CoreExceptionType } from "../core";
 
 /**
  * Abstract base for every exception thrown from the **domain layer**
  * (entities, value objects, aggregates, business invariants).
  *
- * The class fixes `[ExceptionLayer]` to `"domain"`, leaving subclasses
- * responsible only for `name`, `message`, `source`, and any extra fields
- * needed to explain which invariant was broken.
+ * The class fixes `[Layer]` to `"domain"`, leaving subclasses responsible
+ * only for `name`, `message`, `source`, and any extra fields needed to
+ * explain which invariant was broken.
  *
  * @remarks
  * Domain exceptions describe violations of business rules independent of
@@ -39,5 +39,5 @@ export abstract class DomainException extends CoreException {
 	 * Layer discriminator pinned to `"domain"`. Sealed by this abstract class
 	 * so concrete subclasses do not need to assign it themselves.
 	 */
-	public override readonly [ExceptionLayer]: CoreExceptionType = "domain";
+	public override readonly [Layer]: CoreExceptionType = "domain";
 }

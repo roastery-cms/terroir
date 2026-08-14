@@ -14,12 +14,13 @@ import type * as Exceptions from "@/exceptions/application";
  *
  * // ApplicationExceptions is e.g.
  * //   | "BadRequestException"
- * //   | "InvalidJWTException"
+ * //   | "ForbiddenException"
  * //   | "InvalidOperationException"
  * //   | "ResourceAlreadyExistsException"
  * //   | "ResourceNotFoundException"
- * //   | "UnableToSignPayloadException"
+ * //   | "TooManyRequestsException"
  * //   | "UnauthorizedException"
+ * //   | ... one member per HTTP error status
  *
  * const handlers: Record<ApplicationExceptions, (error: Error) => void> = {
  *   // ...

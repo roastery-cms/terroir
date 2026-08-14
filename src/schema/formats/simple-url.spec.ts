@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { FormatRegistry, Type } from "@sinclair/typebox";
-import { Schema } from "../schema";
+import { SchemaManager } from "../schema-manager";
 import "./index";
 
 describe("Simple URL Format", () => {
-	const schema = new Schema(Type.String({ format: "simple-url" }));
+	const schema = Type.String({ format: "simple-url" });
 	const check = FormatRegistry.Get("simple-url") as (value: string) => boolean;
 
 	it("should return true for any string parseable by URL", () => {
@@ -19,7 +19,7 @@ describe("Simple URL Format", () => {
 		];
 
 		for (const url of validUrls) {
-			expect(schema.match(url)).toBe(true);
+			expect(SchemaManager.match(schema, url)).toBe(true);
 			expect(check(url)).toBe(true);
 		}
 	});
@@ -35,7 +35,7 @@ describe("Simple URL Format", () => {
 		];
 
 		for (const url of invalidUrls) {
-			expect(schema.match(url)).toBe(false);
+			expect(SchemaManager.match(schema, url)).toBe(false);
 			expect(check(url)).toBe(false);
 		}
 	});

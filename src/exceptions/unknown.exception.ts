@@ -1,5 +1,5 @@
 import { CoreException, type CoreExceptionType } from "./core";
-import { ExceptionLayer } from "./symbols";
+import { Layer } from "@/symbols";
 
 /**
  * Internal-layer exception used as a last-resort wrapper when the framework
@@ -21,7 +21,7 @@ import { ExceptionLayer } from "./symbols";
  */
 export class UnknownException extends CoreException {
 	/** Layer discriminator, fixed to `"internal"`. */
-	public override readonly [ExceptionLayer]: CoreExceptionType = "internal";
+	public override readonly [Layer]: CoreExceptionType = "internal";
 
 	/** Human-readable label for the exception class. */
 	public readonly name = "Unknown Error";
@@ -32,10 +32,13 @@ export class UnknownException extends CoreException {
 	/**
 	 * @param message - Optional explanatory message. Defaults to a generic
 	 *   "unknown error" string.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly message: string = "An unknown error has occurred.",
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

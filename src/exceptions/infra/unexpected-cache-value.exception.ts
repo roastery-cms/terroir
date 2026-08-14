@@ -29,12 +29,15 @@ export class UnexpectedCacheValueException extends InfraException {
 	 * @param source - Identifier of the cache backend.
 	 * @param message - Optional explanatory message. Defaults to a templated
 	 *   string that references {@link key}.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly key: string,
 		public readonly source: string,
 		public readonly message: string = `The value from cache for key '${key}' was unexpected.`,
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

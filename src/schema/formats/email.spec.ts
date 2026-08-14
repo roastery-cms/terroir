@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { Type } from "@sinclair/typebox";
-import { Schema } from "../schema";
+import { SchemaManager } from "../schema-manager";
 import "./index";
 
 describe("Email Format", () => {
-	const schema = new Schema(Type.String({ format: "email" }));
+	const schema = Type.String({ format: "email" });
 
 	it("should return true for valid emails", () => {
 		const validEmails = [
@@ -17,7 +17,7 @@ describe("Email Format", () => {
 		];
 
 		for (const email of validEmails) {
-			expect(schema.match(email)).toBe(true);
+			expect(SchemaManager.match(schema, email)).toBe(true);
 		}
 	});
 
@@ -34,7 +34,7 @@ describe("Email Format", () => {
 		];
 
 		for (const email of invalidEmails) {
-			expect(schema.match(email)).toBe(false);
+			expect(SchemaManager.match(schema, email)).toBe(false);
 		}
 	});
 });

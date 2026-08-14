@@ -37,26 +37,34 @@ The exception system is the single most load-bearing pattern in this repo. Addin
 
 ```
 CoreException (abstract, extends Error)
-├── [ExceptionLayer]: "internal" | "domain" | "application" | "infra"
+├── [Layer]: "internal" | "domain" | "application" | "infra"
 ├── name, message, source       (all abstract readonly)
 │
-├── ApplicationException        (abstract, fixes [ExceptionLayer] = "application")
-│   └── concrete classes in src/exceptions/application/{,jwt/}
+├── ApplicationException        (abstract, fixes [Layer] = "application")
+│   └── concrete classes in src/exceptions/application/ (one per HTTP 4xx/5xx status)
 │
-├── DomainException             (abstract, fixes [ExceptionLayer] = "domain")
+├── DomainException             (abstract, fixes [Layer] = "domain")
 │   └── concrete classes in src/exceptions/domain/
 │
-├── InfraException              (abstract, fixes [ExceptionLayer] = "infra")
+├── InfraException              (abstract, fixes [Layer] = "infra")
 │   └── concrete classes in src/exceptions/infra/
 │
-└── [direct subclasses]         ([ExceptionLayer] = "internal", source = "$internal")
+└── [direct subclasses]         ([Layer] = "internal", source = "$internal")
     └── InvalidEntityDataException, InvalidObjectValueException, UnknownException
         in src/exceptions/*.ts (top-level)
 ```
 
-`ExceptionLayer` is a `Symbol("exception:layer")` (in `src/exceptions/symbols/exception-layer.ts`). It is the runtime discriminator that survives bundler renaming and serialization — error-handling middleware reads this property, not `instanceof`.
+`Layer` is a `Symbol("layer")` (in `src/symbols/layer.ts`, exported from the `@roastery/terroir/symbols` barrel alongside `Context`, `Demo`, `Meta`, `Properties`, `Source` and `Storage`). It is the runtime discriminator that survives bundler renaming and serialization — error-handling middleware reads this property, not `instanceof`. Exceptions import it as `import { Layer } from "@/symbols"`; there is no exception-scoped symbols module.
+
+**`src/symbols/` is a declaration site, not a feature.** `Layer` is the only one this package uses; the other six key the internal slots of the `Entity` / `ValueObject` bases in `@roastery/beans`. They live here because symbol equality is by reference — one declaration is what lets `beans` write a slot and a consumer read it. Two rules follow: every symbol must be exported from `src/symbols/index.ts` (only barrels are published, so an unexported symbol is unreachable and `knip` will fail the build), and none of them may be re-declared downstream. Their TSDoc describes behaviour implemented in `beans`, so reference those types by package path — `@/value-object/types` does not exist in this repo.
 
 **Naming convention** (intentional, not a bug): application/domain exception `name` fields use a bare label (e.g. `"Bad Request"`, `"Invalid Property"`). Infra exception `name` fields use the `*Exception` suffix (e.g. `"Conflict Exception"`, `"Cache Unavailable Exception"`). This is preserved for log compatibility — don't normalize it.
+
+**HTTP coverage in the application layer**: `src/exceptions/application/` holds one class per HTTP error status registered by the IANA (4xx and 5xx). Four statuses are served by pre-existing domain-flavoured names, which stay canonical for those codes — `BadRequestException` (400), `UnauthorizedException` (401), `ResourceNotFoundException` (404), `ResourceAlreadyExistsException` (409). Don't add `NotFoundException`/`ConflictException` duplicates. `InvalidOperationException` is the only class not named after a status; it reports `400`.
+
+**`code` is application-only** (`src/exceptions/models/application-exception.ts`): `ApplicationException` declares `public abstract readonly code: number` and every concrete class sets its status literal. `DomainException`, `InfraException` and the internal exceptions deliberately have none — a broken invariant or an unreachable database are transport-agnostic, and teaching them about HTTP would leak the delivery mechanism into layers that must not know it exists. The application layer is the exception because its catalogue *is* the HTTP registry: the coupling is already in the class name. Adding a class to `src/exceptions/application/` without a `code` is a compile error.
+
+**`cause` on every concrete exception**: each constructor takes a trailing, optional `options?: ErrorOptions` forwarded as `super(message, options)`. Preserve this parameter when adding classes — translating a driver error into a layer exception must not discard the original. `tsconfig.json` targets `ESNext`, so `Error.cause` is native.
 
 **Internal vs layer exceptions**: internal exceptions (`InvalidEntityDataException`, `InvalidObjectValueException`, `UnknownException`) extend `CoreException` *directly* — they bypass the abstract layer bases because they originate inside the framework, not from a business layer. Their `source` is always `"$internal"`.
 
@@ -68,15 +76,20 @@ CoreException (abstract, extends Error)
 
 ### Schema module
 
-`Schema<T extends TSchema>` (in `src/schema/schema.ts`) wraps a TypeBox schema and eagerly compiles it via `TypeCompiler.Compile`. It exposes:
+**Schemas stay plain TypeBox values.** There is no wrapper class — the module used to ship a `Schema<T>` container and it was removed on purpose. Anything that takes or returns a schema takes or returns a `TSchema`, so consumers keep TypeBox's own API (`Value.Check`, `Value.Convert`, `Static<typeof schema>`, …) without unwrapping first. Don't reintroduce a container type; add a static to `SchemaManager` instead.
 
-- `match(value)` — fast boolean check via the compiled validator.
-- `map(value)` — `Convert → Cast → Clean` pipeline (coerces primitives, fills defaults, strips unknown properties).
-- `toString()` / `toJSON()` — JSON serialization (drops the TypeBox `[Kind]` symbol).
+`SchemaManager` (in `src/schema/schema-manager.ts`) is a static-only class — `private constructor`, every member `static` — covering what TypeBox doesn't do on its own: crossing a serialization boundary.
 
-`SchemaManager.build<T>(jsonString)` rebuilds a typed `Schema` from a serialized payload by passing the parsed JSON through `hydrateSchema` (in `src/schema/utils/hydrate-schema.ts`) before compilation. `hydrateSchema` walks the tree and reattaches the `[Kind]` symbol that `JSON.stringify` dropped — without it, TypeBox's compiler does not recognize the payload as a schema.
+- `build<T>(jsonString): T` — `JSON.parse` → `hydrateSchema` → `TypeCompiler.Compile`, returning the hydrated `TSchema`. It compiles eagerly so a malformed payload throws at `build` rather than at the first validation, and the compiled validator lands in the cache.
+- `serialize(schema): string` — `JSON.stringify`; drops the `[Kind]` symbol, so the output is only usable through `build`.
+- `match(schema, value): boolean` — check via the cached compiled validator.
+- `isSchema(value): boolean` — accepts a JSON string or a parsed object; never throws.
 
-**Format registry side-effect**: `src/schema/formats/index.ts` does seven side-effect imports that mutate the global TypeBox `FormatRegistry`. Importing `@roastery/terroir/schema` (or anything that transitively imports it, like `Schema`/`SchemaManager`) registers `"date-time" | "email" | "json" | "simple-url" | "slug" | "url" | "uuid"` exactly once. The `"uuid"` format is **v7-only** — other versions are rejected so downstream code can rely on the time-ordered prefix.
+`hydrateSchema` (in `src/schema/utils/hydrate-schema.ts`) walks the tree and reattaches the `[Kind]` symbol that `JSON.stringify` dropped — without it, TypeBox's compiler does not recognize the payload as a schema.
+
+**Compiled-validator cache**: `TypeCompiler.Compile` is expensive, so `match` memoizes it in a module-level `WeakMap<TSchema, TypeCheck<TSchema>>` keyed by the schema object itself. Two consequences worth keeping in mind: identity keying means structurally identical schemas compile twice, and a schema mutated after first use keeps its stale validator. Schemas reaching this module are treated as immutable.
+
+**Format registry side-effect**: `src/schema/formats/index.ts` does seven side-effect imports that mutate the global TypeBox `FormatRegistry`. Importing `@roastery/terroir/schema` (or anything that transitively imports it, like `SchemaManager`) registers `"date-time" | "email" | "json" | "simple-url" | "slug" | "url" | "uuid"` exactly once. The `"uuid"` format is **v7-only** — other versions are rejected so downstream code can rely on the time-ordered prefix.
 
 ### Build pipeline
 

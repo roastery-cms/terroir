@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { FormatRegistry, Type } from "@sinclair/typebox";
-import { Schema } from "../schema";
+import { SchemaManager } from "../schema-manager";
 import "./index";
 
 describe("JSON Format", () => {
-	const schema = new Schema(Type.String({ format: "json" }));
+	const schema = Type.String({ format: "json" });
 	const check = FormatRegistry.Get("json") as (value: string) => boolean;
 
 	it("should return true for valid JSON strings", () => {
@@ -22,7 +22,7 @@ describe("JSON Format", () => {
 		];
 
 		for (const json of validJson) {
-			expect(schema.match(json)).toBe(true);
+			expect(SchemaManager.match(schema, json)).toBe(true);
 			expect(check(json)).toBe(true);
 		}
 	});
@@ -42,7 +42,7 @@ describe("JSON Format", () => {
 		];
 
 		for (const json of invalidJson) {
-			expect(schema.match(json)).toBe(false);
+			expect(SchemaManager.match(schema, json)).toBe(false);
 			expect(check(json)).toBe(false);
 		}
 	});

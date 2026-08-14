@@ -14,4 +14,17 @@ describe("Bad Request Exception", () => {
 		const exception = new BadRequestException("User", "Custom error");
 		expect(exception.message).toBe("Custom error");
 	});
+
+	it("should expose the HTTP status it maps to", () => {
+		const exception = new BadRequestException("User");
+		expect(exception.code).toBe(400);
+	});
+
+	it("should keep the original error in cause", () => {
+		const original = new Error("root cause");
+		const exception = new BadRequestException("User", undefined, {
+			cause: original,
+		});
+		expect(exception.cause).toBe(original);
+	});
 });

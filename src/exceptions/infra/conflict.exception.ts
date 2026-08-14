@@ -31,11 +31,14 @@ export class ConflictException extends InfraException {
 	 *   the conflict.
 	 * @param message - Optional explanatory message. Defaults to a static
 	 *   string indicating a database conflict.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly source: string,
 		public readonly message: string = "A conflict occurred in the database.",
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

@@ -2,7 +2,7 @@
  * Public barrel for the abstract layer base classes that sit between
  * {@link CoreException} and concrete exceptions.
  *
- * Each class fixes the value of `[ExceptionLayer]` for its layer so concrete
+ * Each class fixes the value of `[Layer]` for its layer so concrete
  * subclasses only have to fill in `name`, `message` and `source`.
  *
  * @module @roastery/terroir/exceptions/models

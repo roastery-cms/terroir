@@ -13,4 +13,10 @@ describe("Unknown Exception", () => {
 		const exception = new UnknownException("Custom error");
 		expect(exception.message).toBe("Custom error");
 	});
+
+	it("should keep the original error in cause", () => {
+		const original = new Error("root cause");
+		const exception = new UnknownException(undefined, { cause: original });
+		expect(exception.cause).toBe(original);
+	});
 });

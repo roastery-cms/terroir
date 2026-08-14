@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { InvalidPropertyException } from "./invalid-property.exception";
-import { ExceptionLayer } from "@/exceptions/symbols";
+import { Layer } from "@/symbols";
 
 describe("InvalidPropertyException", () => {
 	it("should return the correct name", () => {
@@ -29,11 +29,19 @@ describe("InvalidPropertyException", () => {
 
 	it("should return the correct layer", () => {
 		const exception = new InvalidPropertyException("email", "User");
-		expect(exception[ExceptionLayer]).toBe("domain");
+		expect(exception[Layer]).toBe("domain");
 	});
 
 	it("should return the correct property", () => {
 		const exception = new InvalidPropertyException("email", "User");
 		expect(exception.property).toBe("email");
+	});
+
+	it("should keep the original error in cause", () => {
+		const original = new Error("root cause");
+		const exception = new InvalidPropertyException("email", "User", undefined, {
+			cause: original,
+		});
+		expect(exception.cause).toBe(original);
 	});
 });

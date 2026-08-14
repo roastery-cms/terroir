@@ -1,5 +1,5 @@
 import { CoreException, type CoreExceptionType } from "./core";
-import { ExceptionLayer } from "./symbols";
+import { Layer } from "@/symbols";
 
 /**
  * Internal-layer exception thrown when a value object is constructed with a
@@ -21,7 +21,7 @@ import { ExceptionLayer } from "./symbols";
  */
 export class InvalidObjectValueException extends CoreException {
 	/** Layer discriminator, fixed to `"internal"`. */
-	public override readonly [ExceptionLayer]: CoreExceptionType = "internal";
+	public override readonly [Layer]: CoreExceptionType = "internal";
 
 	/** Human-readable label for the exception class. */
 	public readonly name = "Invalid Object Value";
@@ -34,11 +34,14 @@ export class InvalidObjectValueException extends CoreException {
 	 *   value (interpolated into the default message).
 	 * @param message - Optional explanatory message. Defaults to a templated
 	 *   string that references {@link objectValueName}.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly objectValueName: string,
 		public readonly message: string = `Invalid value provided for the ${objectValueName} object value.`,
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

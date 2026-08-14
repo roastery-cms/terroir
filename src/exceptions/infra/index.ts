@@ -3,7 +3,7 @@
  * **infrastructure layer** (databases, caches, external services, plugins).
  *
  * All classes exported here extend {@link InfraException} and therefore
- * report `[ExceptionLayer] === "infra"`.
+ * report `[Layer] === "infra"`.
  *
  * @module @roastery/terroir/exceptions/infra
  * @see {@link InfraException}
@@ -17,3 +17,23 @@ export { ForeignDependencyConstraintException } from "./foreign-dependency-const
 export { UnexpectedCacheValueException } from "./unexpected-cache-value.exception";
 export { MissingPluginDependencyException } from "./missing-plugin-dependency.exception";
 export { InvalidEnvironmentException } from "./invalid-environment.exception";
+
+// Composition and boot
+export { DependencyNotWiredException } from "./dependency-not-wired.exception";
+export { MigrationFailedException } from "./migration-failed.exception";
+export { DuplicatePluginException } from "./duplicate-plugin.exception";
+
+// Reachability and credentials
+export { ExternalServiceUnavailableException } from "./external-service-unavailable.exception";
+export { OperationTimeoutException } from "./operation-timeout.exception";
+export { CredentialsRejectedException } from "./credentials-rejected.exception";
+
+// Transactional writes
+export { TransactionFailedException } from "./transaction-failed.exception";
+export { WriteConflictException } from "./write-conflict.exception";
+export { OptimisticLockException } from "./optimistic-lock.exception";
+
+// Object storage and filesystem
+export { StorageUnavailableException } from "./storage-unavailable.exception";
+export { FileNotFoundException } from "./file-not-found.exception";
+export { FileWriteFailedException } from "./file-write-failed.exception";

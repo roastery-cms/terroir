@@ -1,13 +1,13 @@
-import { ExceptionLayer } from "@/exceptions/symbols";
+import { Layer } from "@/symbols";
 import { CoreException, type CoreExceptionType } from "../core";
 
 /**
  * Abstract base for every exception thrown from the **infrastructure layer**
  * (databases, caches, file systems, third-party services, plugins).
  *
- * The class fixes `[ExceptionLayer]` to `"infra"`, leaving subclasses
- * responsible only for `name`, `message`, `source`, and any extra fields
- * needed to explain the infrastructure-level failure.
+ * The class fixes `[Layer]` to `"infra"`, leaving subclasses responsible
+ * only for `name`, `message`, `source`, and any extra fields needed to
+ * explain the infrastructure-level failure.
  *
  * @remarks
  * Infra exceptions typically translate into HTTP `5xx` responses (the
@@ -39,5 +39,5 @@ export abstract class InfraException extends CoreException {
 	 * Layer discriminator pinned to `"infra"`. Sealed by this abstract class
 	 * so concrete subclasses do not need to assign it themselves.
 	 */
-	public override readonly [ExceptionLayer]: CoreExceptionType = "infra";
+	public override readonly [Layer]: CoreExceptionType = "infra";
 }

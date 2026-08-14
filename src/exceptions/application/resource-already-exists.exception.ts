@@ -21,16 +21,22 @@ export class ResourceAlreadyExistsException extends ApplicationException {
 	/** Human-readable label for the exception class. */
 	public readonly name = "Resource Already Exists";
 
+	/** HTTP status this exception maps to. */
+	public readonly code = 409;
+
 	/**
 	 * @param source - Identifier of the domain/use-case that detected the
 	 *   conflict (used in the default message template).
 	 * @param message - Optional explanatory message. Defaults to a templated
 	 *   string that references {@link source}.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly source: string,
 		public readonly message: string = `Resource already exists in the ${source} domain.`,
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

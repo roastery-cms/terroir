@@ -9,7 +9,7 @@ Layered exception hierarchy and runtime schema validation for the [Roastery CMS]
 **terroir** provides two core primitives for building robust, type-safe TypeScript applications:
 
 - **Exception hierarchy** — A structured, symbol-tagged exception system organized by architectural layer (Domain, Application, Infrastructure), designed for Clean Architecture and DDD applications.
-- **Schema validation** — A runtime validation and coercion engine built on [TypeBox](https://github.com/sinclairzx81/typebox), with support for custom string formats like UUID v7, slug, email, and more.
+- **Schema validation** — Custom TypeBox string formats (UUID v7, slug, email, and more) plus `SchemaManager`, which serializes, rehydrates and validates [TypeBox](https://github.com/sinclairzx81/typebox) schemas that cross a serialization boundary.
 
 ## Technologies
 
@@ -38,20 +38,34 @@ bun add @sinclair/typebox uuid
 
 ## Exceptions
 
-All exceptions extend `CoreException` and carry a Symbol-tagged `[ExceptionLayer]` property for runtime layer detection.
+All exceptions extend `CoreException` and carry a Symbol-tagged `[Layer]` property for runtime layer detection.
 
 ```typescript
-import { ExceptionLayer } from '@roastery/terroir/exceptions/symbols';
+import { Layer } from '@roastery/terroir/symbols';
 
 function handleError(err: unknown) {
-  if (err instanceof Error && ExceptionLayer in err) {
-    const layer = (err as any)[ExceptionLayer]; // 'application' | 'domain' | 'infra' | 'internal'
+  if (err instanceof Error && Layer in err) {
+    const layer = (err as any)[Layer]; // 'application' | 'domain' | 'infra' | 'internal'
     console.log(`Error from layer: ${layer}`);
   }
 }
 ```
 
 > **Naming convention**: application and domain exception `name` fields use a bare label (e.g. `"Bad Request"`, `"Invalid Property"`), while infrastructure exception `name` fields use the `*Exception` suffix (e.g. `"Conflict Exception"`, `"Cache Unavailable Exception"`). This is intentional and preserved for log compatibility.
+
+### Preserving the original error
+
+Every concrete exception takes a trailing, optional `ErrorOptions`, so translating a low-level failure into a layer exception never throws the diagnosis away:
+
+```typescript
+try {
+  await prisma.$connect();
+} catch (error) {
+  throw new DatabaseUnavailableException('postgres@boot', undefined, { cause: error });
+}
+```
+
+Pass `undefined` as the message to keep the templated default. `cause` is the native `Error.cause`, so it shows up in formatted stack traces for free.
 
 ### Application layer
 
@@ -60,18 +74,65 @@ Errors related to business logic, request handling, and user input.
 ```typescript
 import { BadRequestException } from '@roastery/terroir/exceptions/application';
 
-throw new BadRequestException('Invalid input', 'UserController');
+throw new BadRequestException('UserController', 'Invalid input');
 ```
 
-| Class | When to use |
-|-------|-------------|
-| `BadRequestException` | Invalid or malformed input |
-| `UnauthorizedException` | Authentication required or failed |
-| `InvalidOperationException` | Operation not allowed in current state |
-| `ResourceNotFoundException` | Requested resource does not exist |
-| `ResourceAlreadyExistsException` | Duplicate resource creation attempt |
-| `InvalidJwtException` | JWT token is invalid |
-| `UnableToSignPayloadException` | JWT signing failed |
+The layer ships one exception per HTTP error status registered by the IANA, so
+a use-case can throw the exact failure without declaring local classes. Four
+statuses keep their original domain-flavoured names — they are the canonical
+class for that code, and no duplicate `NotFound`/`Conflict` class exists.
+
+Each class exposes the status as `code`, so error middleware reads it straight off the exception instead of maintaining a parallel class-name→status table:
+
+```typescript
+if (err instanceof ApplicationException) set.status = err.code;
+```
+
+`code` is exclusive to this layer. `DomainException` and `InfraException` have no equivalent on purpose: a broken invariant or an unreachable database are transport-agnostic facts, and the application catalogue is the only one whose classes are *named after* HTTP statuses to begin with.
+
+| Class | Status | When to use |
+|-------|--------|-------------|
+| `BadRequestException` | 400 | Invalid or malformed input |
+| `UnauthorizedException` | 401 | Authentication required or failed |
+| `PaymentRequiredException` | 402 | No subscription, credit or payment method |
+| `ForbiddenException` | 403 | Authenticated but not permitted |
+| `ResourceNotFoundException` | 404 | Requested resource does not exist |
+| `MethodNotAllowedException` | 405 | Operation unsupported by the resource |
+| `NotAcceptableException` | 406 | No representation satisfies the caller |
+| `ProxyAuthenticationRequiredException` | 407 | Proxy credentials missing |
+| `RequestTimeoutException` | 408 | Caller took too long to send the request |
+| `ResourceAlreadyExistsException` | 409 | Duplicate resource creation attempt |
+| `GoneException` | 410 | Resource permanently removed |
+| `LengthRequiredException` | 411 | Payload sent without a declared length |
+| `PreconditionFailedException` | 412 | Conditional pre-condition does not hold |
+| `ContentTooLargeException` | 413 | Payload exceeds the accepted size |
+| `UriTooLongException` | 414 | Identifier longer than accepted |
+| `UnsupportedMediaTypeException` | 415 | Payload format cannot be decoded |
+| `RangeNotSatisfiableException` | 416 | Requested range outside the resource |
+| `ExpectationFailedException` | 417 | Declared expectation cannot be met |
+| `ImATeapotException` | 418 | RFC 2324 — reserved, rarely appropriate |
+| `MisdirectedRequestException` | 421 | Request reached the wrong instance |
+| `UnprocessableContentException` | 422 | Well-formed but semantically invalid |
+| `LockedException` | 423 | Resource locked by another operation |
+| `FailedDependencyException` | 424 | A dependent request already failed |
+| `TooEarlyException` | 425 | Request might be a replay |
+| `UpgradeRequiredException` | 426 | Caller must switch protocol |
+| `PreconditionRequiredException` | 428 | Request must be conditional |
+| `TooManyRequestsException` | 429 | Rate limit exceeded |
+| `RequestHeaderFieldsTooLargeException` | 431 | Request metadata too large |
+| `UnavailableForLegalReasonsException` | 451 | Withheld because of a legal demand |
+| `InternalServerErrorException` | 500 | Last-resort application-layer failure |
+| `NotImplementedException` | 501 | Operation recognised but not implemented |
+| `BadGatewayException` | 502 | Invalid response from an upstream service |
+| `ServiceUnavailableException` | 503 | Overload, maintenance or degraded dependency |
+| `GatewayTimeoutException` | 504 | Upstream service did not answer in time |
+| `HttpVersionNotSupportedException` | 505 | Protocol version unsupported |
+| `VariantAlsoNegotiatesException` | 506 | Content negotiation loops |
+| `InsufficientStorageException` | 507 | Not enough storage to complete |
+| `LoopDetectedException` | 508 | Infinite loop detected while processing |
+| `NotExtendedException` | 510 | Request needs further extensions |
+| `NetworkAuthenticationRequiredException` | 511 | Caller must authenticate with the network |
+| `InvalidOperationException` | — | Operation not allowed in current state |
 
 ### Domain layer
 
@@ -88,6 +149,13 @@ throw new InvalidPropertyException('email', 'UserEntity');
 | `InvalidDomainDataException` | Domain invariant violated |
 | `InvalidPropertyException` | Entity property failed validation |
 | `OperationFailedException` | Domain operation could not complete |
+| `ImmutablePropertyException` | Write targeted a sealed property (`id`, `createdAt`) |
+| `PropertyNameCollisionException` | Blueprint property shadows a base-class member |
+| `IncompleteIdentityException` | Entity carries part of its identity, not all |
+| `InvalidEntityDefinitionException` | Entity/value-object definition unreadable |
+| `CyclicEntityDefinitionException` | Blueprint references itself |
+
+`ImmutablePropertyException` and `PropertyNameCollisionException` take the property name first, like `InvalidPropertyException`.
 
 ### Infrastructure layer
 
@@ -110,6 +178,24 @@ throw new DatabaseUnavailableException('PostgresRepository');
 | `OperationNotAllowedException` | Operation rejected by data store |
 | `InvalidEnvironmentException` | Missing or invalid environment config |
 | `MissingPluginDependencyException` | Required plugin not registered |
+| `DependencyNotWiredException` | Dependency was never injected during composition |
+| `MigrationFailedException` | Schema migration could not be applied |
+| `DuplicatePluginException` | Same plugin registered twice |
+| `ExternalServiceUnavailableException` | Third-party or sibling service unreachable |
+| `OperationTimeoutException` | Call exceeded its time budget |
+| `CredentialsRejectedException` | Dependency refused the system's credentials |
+| `TransactionFailedException` | Transaction rolled back |
+| `WriteConflictException` | Deadlock or serialization failure — retryable |
+| `OptimisticLockException` | Record changed since it was read |
+| `StorageUnavailableException` | Object storage unreachable |
+| `FileNotFoundException` | Path or object key does not exist |
+| `FileWriteFailedException` | Write failed (no space, permission, closed fd) |
+
+Three distinctions worth keeping straight, because collapsing them costs diagnosis time:
+
+- **`OperationTimeoutException` vs `*UnavailableException`** — a timeout usually means the dependency is alive but saturated, which calls for backoff rather than failover.
+- **`WriteConflictException` vs `TransactionFailedException`** — the first is retryable by definition (the database aborted one side so the caller could retry); the second will fail again if replayed unchanged.
+- **`OptimisticLockException` vs `ResourceNotFoundException`** — the row exists, its revision moved. Reporting it as not-found makes callers delete-and-recreate when the fix is to re-read and re-apply.
 
 ### Internal exceptions
 
@@ -133,45 +219,46 @@ import type { RoasteryExceptionKeysByLayer, RoasteryExceptionKeys, RoasteryExcep
 
 ## Schema Validation
 
-> **Side-effect**: importing `@roastery/terroir/schema` (or anything that transitively imports it, like `Schema`/`SchemaManager`) registers the custom string formats on TypeBox's global `FormatRegistry`. Registration is idempotent and happens exactly once per process.
+> **Side-effect**: importing `@roastery/terroir/schema` (or anything that transitively imports it, like `SchemaManager`) registers the custom string formats on TypeBox's global `FormatRegistry`. Registration is idempotent and happens exactly once per process.
+
+Schemas are plain TypeBox values — there is no wrapper type to unwrap. Build them with `t` (or `Type`) and use TypeBox's own API on them:
 
 ```typescript
-import { Schema } from '@roastery/terroir/schema';
-import { Type } from '@sinclair/typebox';
+import { t } from '@roastery/terroir';
+import { Value } from '@sinclair/typebox/value';
+import type { Static } from '@sinclair/typebox';
 
-const UserSchema = new Schema(
-  Type.Object({
-    id: Type.String({ format: 'uuid' }),
-    email: Type.String({ format: 'email' }),
-    slug: Type.String({ format: 'slug' }),
-    createdAt: Type.String({ format: 'date-time' }),
-  })
-);
+const UserSchema = t.Object({
+  id: t.String({ format: 'uuid' }),
+  email: t.String({ format: 'email' }),
+  slug: t.String({ format: 'slug' }),
+  createdAt: t.String({ format: 'date-time' }),
+});
 
-// Validate input
-if (UserSchema.match(data)) {
-  // data is typed as Static<typeof UserSchema>
-}
+type User = Static<typeof UserSchema>;
 
-// Coerce and clean input (removes extra properties, applies defaults)
-const user = UserSchema.map(rawInput);
-
-// Serialize schema to JSON string
-const json = UserSchema.toString();
+Value.Check(UserSchema, data); // boolean
 ```
 
 ### Dynamic schema loading
 
-Load and compile schemas at runtime from JSON strings (e.g., from a database or config file):
+`SchemaManager` is the entry point for schemas that cross a serialization boundary — stored in a database, sent over the wire, or read from config. `JSON.stringify` drops the `[Kind]` symbol TypeBox uses to identify each node; `build` re-attaches it and compiles the result, so an invalid payload fails there rather than at the first validation.
 
 ```typescript
 import { SchemaManager } from '@roastery/terroir/schema';
 import type { TObject } from '@sinclair/typebox';
 
-const schema = SchemaManager.build<TObject>('{"type":"object","properties":{...}}');
+// Producer side
+const wire = SchemaManager.serialize(UserSchema); // string
 
-SchemaManager.isSchema(unknownValue); // boolean
+// Consumer side — a usable TypeBox schema, not a wrapper
+const schema = SchemaManager.build<TObject>(wire);
+
+SchemaManager.match(schema, data);      // boolean, via a cached compiled validator
+SchemaManager.isSchema(unknownValue);   // boolean, never throws
 ```
+
+> `match` compiles each schema once and caches the validator in a `WeakMap` keyed by the schema object. Treat a schema as immutable once it reaches `SchemaManager` — mutating it afterwards leaves the stale validator in place.
 
 ### Available string formats
 
@@ -197,13 +284,12 @@ Automatically registered when importing `@roastery/terroir/schema`:
 import { t, uuid } from '@roastery/terroir';                    // TypeBox and uuid namespaces (re-exports)
 import { ... } from '@roastery/terroir/exceptions';             // internal exceptions (rare)
 import { ... } from '@roastery/terroir/exceptions/application'; // application layer
-import { ... } from '@roastery/terroir/exceptions/application/jwt'; // JWT exceptions
 import { ... } from '@roastery/terroir/exceptions/domain';      // domain layer
 import { ... } from '@roastery/terroir/exceptions/infra';       // infra layer
 import { ... } from '@roastery/terroir/exceptions/models';      // base classes
-import { ... } from '@roastery/terroir/exceptions/symbols';     // ExceptionLayer symbol
 import type { ... } from '@roastery/terroir/exceptions/types';  // type utilities
-import { ... } from '@roastery/terroir/schema';                 // Schema + SchemaManager
+import { ... } from '@roastery/terroir/symbols';                // Layer and the other well-known symbols
+import { ... } from '@roastery/terroir/schema';                 // SchemaManager + format registrations
 ```
 
 ### Re-exports

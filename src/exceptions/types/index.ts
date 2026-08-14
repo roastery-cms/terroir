@@ -81,12 +81,12 @@ export type RoasteryExceptionKeys<T extends CoreExceptionType> =
  *   domain:   { InvalidDomainDataException: 422, InvalidPropertyException: 422, OperationFailedException: 422 },
  *   application: {
  *     BadRequestException: 400,
- *     InvalidJWTException: 401,
- *     InvalidOperationException: 400,
- *     ResourceAlreadyExistsException: 409,
- *     ResourceNotFoundException: 404,
- *     UnableToSignPayloadException: 500,
  *     UnauthorizedException: 401,
+ *     ForbiddenException: 403,
+ *     ResourceNotFoundException: 404,
+ *     ResourceAlreadyExistsException: 409,
+ *     TooManyRequestsException: 429,
+ *     // ... every remaining HTTP error status; omitting one is a compile error
  *   },
  *   infra: {
  *     CacheUnavailableException: 503,

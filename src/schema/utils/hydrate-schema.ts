@@ -53,7 +53,6 @@ import { Kind } from "@sinclair/typebox/type";
  * ```
  *
  * @see {@link SchemaManager.build}
- * @see {@link Schema}
  */
 // biome-ignore lint/suspicious/noExplicitAny: schema is narrowed to TSchema inside the function
 export function hydrateSchema(schema: any): any {

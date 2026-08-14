@@ -27,11 +27,14 @@ export class DatabaseUnavailableException extends InfraException {
 	 *   failed.
 	 * @param message - Optional explanatory message. Defaults to a static
 	 *   string indicating the database is unavailable.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly source: string,
 		public readonly message: string = "The database is currently unavailable.",
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }

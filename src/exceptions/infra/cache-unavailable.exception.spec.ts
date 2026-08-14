@@ -17,4 +17,12 @@ describe("Cache Unavailable Exception", () => {
 		);
 		expect(exception.message).toBe("Connection refused");
 	});
+
+	it("should keep the original error in cause", () => {
+		const original = new Error("ECONNREFUSED");
+		const exception = new CacheUnavailableException("Redis", undefined, {
+			cause: original,
+		});
+		expect(exception.cause).toBe(original);
+	});
 });

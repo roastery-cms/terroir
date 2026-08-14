@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { Type } from "@sinclair/typebox";
-import { Schema } from "../schema";
+import { SchemaManager } from "../schema-manager";
 import "./index";
 
 describe("Slug Format", () => {
-	const schema = new Schema(Type.String({ format: "slug" }));
+	const schema = Type.String({ format: "slug" });
 
 	it("should return true for valid slugs", () => {
 		const validSlugs = [
@@ -19,7 +19,7 @@ describe("Slug Format", () => {
 		];
 
 		for (const slug of validSlugs) {
-			expect(schema.match(slug)).toBe(true);
+			expect(SchemaManager.match(schema, slug)).toBe(true);
 		}
 	});
 
@@ -39,7 +39,7 @@ describe("Slug Format", () => {
 		];
 
 		for (const slug of invalidSlugs) {
-			expect(schema.match(slug)).toBe(false);
+			expect(SchemaManager.match(schema, slug)).toBe(false);
 		}
 	});
 });

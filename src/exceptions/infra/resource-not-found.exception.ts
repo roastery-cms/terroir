@@ -36,11 +36,14 @@ export class ResourceNotFoundException extends InfraException {
 	 *   missing lookup.
 	 * @param message - Optional explanatory message. Defaults to a static
 	 *   string about the missing resource.
+	 * @param options - Native `ErrorOptions`; pass `{ cause }` to keep the
+	 *   error that triggered this one.
 	 */
 	constructor(
 		public readonly source: string,
 		public readonly message: string = "The resource was not found.",
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 	}
 }
