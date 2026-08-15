@@ -5,10 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-08-15
 
 ### Added
 
+- `Rules` to the `@roastery/terroir/symbols` subpath: the symbol keying the per-property rules of an `Entity` blueprint in `@roastery/beans` (a partial map of blueprint key to `{ default }` or `{ derive }`). It joins `Context`, `Demo`, `Layer`, `Meta`, `Properties`, `Source` and `Storage` as a slot declared here and written/read by `beans` — a symbol key keeps the rule map out of `Object.keys`/`Object.entries`, so it can live on the blueprint object itself without disturbing any existing traversal.
 - Complete HTTP error catalogue in the application layer: 36 new exceptions, one per 4xx/5xx status registered by the IANA (402, 403, 405–408, 410–418, 421–426, 428, 429, 431, 451, 500–508, 510, 511). Each ships the usual `(source, message?)` signature, a templated default message, TSDoc with the status it maps to, and a colocated spec. Four statuses keep their pre-existing domain-flavoured names as the canonical class for that code — `BadRequestException` (400), `UnauthorizedException` (401), `ResourceNotFoundException` (404), `ResourceAlreadyExistsException` (409) — so no duplicate `NotFound`/`Conflict` classes were introduced. The classes carry no numeric `status` field; the status↔class mapping stays with the consumer through `RoasteryExceptionRecords<number>`.
 
 - 17 exceptions covering failure modes the ecosystem hits but had no class for. **Infra (12)**: `DependencyNotWiredException`, `MigrationFailedException`, `DuplicatePluginException`, `ExternalServiceUnavailableException`, `OperationTimeoutException`, `CredentialsRejectedException`, `TransactionFailedException`, `WriteConflictException`, `OptimisticLockException`, `StorageUnavailableException`, `FileNotFoundException`, `FileWriteFailedException`. **Domain (5)**: `ImmutablePropertyException`, `PropertyNameCollisionException`, `IncompleteIdentityException`, `InvalidEntityDefinitionException`, `CyclicEntityDefinitionException`. Each was chosen from evidence in the consuming repositories — sites that were reaching for the wrong class, swallowing the error, or discriminating on a message substring.
@@ -58,3 +59,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected internal-exception import example in `README.md`: `InvalidEntityData` → `InvalidEntityDataException` (the class name that actually ships from `@roastery/terroir/exceptions`).
 
 [0.1.0]: https://github.com/roastery-cms/terroir/releases/tag/v0.1.0
+[0.2.0]: https://github.com/roastery-cms/terroir/releases/tag/v0.2.0

@@ -18,6 +18,7 @@
  * - {@link Layer} — architectural layer of an exception.
  * - {@link Meta} — schema + demo default of a `ValueObject`.
  * - {@link Properties} — blueprint of an `Entity`.
+ * - {@link Rules} — per-property rules of an `Entity` blueprint.
  * - {@link Source} — entity-type name of an `Entity`.
  * - {@link Storage} — per-instance transient store of an `Entity`.
  *
@@ -28,5 +29,6 @@ export { Demo } from "./demo";
 export { Layer } from "./layer";
 export { Meta } from "./meta";
 export { Properties } from "./properties";
+export { Rules } from "./rules";
 export { Source } from "./source";
 export { Storage } from "./storage";
