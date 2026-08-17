@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-08-17
+
+### Added
+
+- `Events` to the `@roastery/terroir/symbols` subpath: the symbol keying the per-instance domain-event buffer of an `Entity` in `@roastery/beans`. It joins `Context`, `Demo`, `Layer`, `Meta`, `Properties`, `Rules`, `Source` and `Storage` as a slot declared here and written/read by `beans` — a symbol key keeps the event buffer off `Object.keys`/`Object.entries`, so it can live on the entity instance itself without disturbing any existing traversal.
+
 ## [0.2.0] - 2026-08-15
 
 ### Added
@@ -60,3 +66,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.0]: https://github.com/roastery-cms/terroir/releases/tag/v0.1.0
 [0.2.0]: https://github.com/roastery-cms/terroir/releases/tag/v0.2.0
+[0.2.1]: https://github.com/roastery-cms/terroir/releases/tag/v0.2.1

@@ -15,6 +15,7 @@
  * Re-exports:
  * - {@link Context} — identification context (`ValueObject`) / built property map (`Entity`).
  * - {@link Demo} — sentinel that switches a constructor call into demo mode.
+ * - {@link Events} — per-instance domain-event buffer of an `Entity`.
  * - {@link Layer} — architectural layer of an exception.
  * - {@link Meta} — schema + demo default of a `ValueObject`.
  * - {@link Properties} — blueprint of an `Entity`.
@@ -26,6 +27,7 @@
  */
 export { Context } from "./context";
 export { Demo } from "./demo";
+export { Events } from "./events";
 export { Layer } from "./layer";
 export { Meta } from "./meta";
 export { Properties } from "./properties";
