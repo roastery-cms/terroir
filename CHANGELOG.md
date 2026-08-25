@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-08-24
+
+### Added
+
+- `Json` and `SafeJson` to the `@roastery/terroir/symbols` subpath: the pair of symbols keying the event-payload form of a domain object in `@roastery/beans` — `Json` the complete serialization, `SafeJson` the redacted one, with every property that must not leave the domain masked or omitted. They join `Context`, `Demo`, `Events`, `Layer`, `Meta`, `Properties`, `Rules`, `Source` and `Storage` as slots declared here and written/read by `beans`. The payload an event carries is a separate contract from `toJSON()` and has to be free to diverge from it, so it gets its own slots; a symbol key keeps both off `Object.keys`/`Object.entries` and out of the accessor namespace, so no entity loses `json` as a blueprint property name.
+
 ## [0.2.1] - 2026-08-17
 
 ### Added
@@ -67,3 +73,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/roastery-cms/terroir/releases/tag/v0.1.0
 [0.2.0]: https://github.com/roastery-cms/terroir/releases/tag/v0.2.0
 [0.2.1]: https://github.com/roastery-cms/terroir/releases/tag/v0.2.1
+[0.2.2]: https://github.com/roastery-cms/terroir/releases/tag/v0.2.2
